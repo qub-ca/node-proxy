@@ -4,7 +4,8 @@
   "description": "node-proxy",
   "main": "server.js",
   "author": {
-    "name": "Luc Charest"
+    "name": "Luc Charest",
+    "email": "code@qub.ca"
   },
   "dependencies": {}
 }

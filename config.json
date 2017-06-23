@@ -1,11 +1,13 @@
 {
-	"cachePath": "./cache/",
-	"hostList": {
-		"www.qub.ca":{
-			"ip":"52.2.41.1"
-		},
-		"www.cinqpapilles.com":{
-			"ip":"34.196.82.190"
-		}
-	}
+  "cachePath": "./cache/",
+  "hostList": {
+    "www.qub.ca": {
+      "cacheEnabled": true,
+      "ip": "52.2.41.1"
+    },
+    "www.cinqpapilles.com": {
+      "cacheEnabled": true,
+      "ip": "34.196.82.190"
+    }
+  }
 }

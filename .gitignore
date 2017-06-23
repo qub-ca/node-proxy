@@ -2,6 +2,8 @@ archive
 .vs
 obj
 bin
+node-proxy.njsproj
+node-proxy.sln
 cache
 config.json
 package-lock.json
