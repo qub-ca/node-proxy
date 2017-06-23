@@ -130,7 +130,9 @@ module.exports = {
             Log(err);
         }
 
-    }
+    },
+    getConfig: function () { return config; },
+    getCache: function () { return $cache; }
  
 };
 
