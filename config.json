@@ -1,8 +1,11 @@
 {
 	"cachePath": "./cache/",
 	"hostList": {
-		"nodejs.org":{
-			"ip":"104.20.23.46"
+		"www.qub.ca":{
+			"ip":"52.2.41.1"
+		},
+		"www.cinqpapilles.com":{
+			"ip":"34.196.82.190"
 		}
 	}
 }

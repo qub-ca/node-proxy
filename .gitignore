@@ -3,4 +3,5 @@ archive
 obj
 bin
 cache
+config.json
 DockerBuild.cmd
