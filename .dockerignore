@@ -1,0 +1,7 @@
+node_modules
+archive
+.vs
+obj
+bin
+cache
+DockerBuild.cmd

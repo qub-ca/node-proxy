@@ -1,0 +1,8 @@
+{
+	"cachePath": "./cache/",
+	"hostList": {
+		"nodejs.org":{
+			"ip":"104.20.23.46"
+		}
+	}
+}

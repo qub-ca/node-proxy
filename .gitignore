@@ -1,0 +1,6 @@
+archive
+.vs
+obj
+bin
+cache
+DockerBuild.cmd
