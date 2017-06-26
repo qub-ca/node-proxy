@@ -1,9 +1,11 @@
 ﻿//var proxy = module.exports;
 var http = require('http');
 var https = require('https');
+var tls = require('tls');
 var fs = require('fs');
 $ = {
     config: {},
+    secureContext: {},
     cache: {},
     init: function () {
         // Load Config
@@ -15,8 +17,16 @@ $ = {
             fs.mkdir($.config.cachePath, function () { Log("Cache folder created"); });
         }
 
-        // Load cache
         for (var host in $.config.hostList) {
+            // Load SSL Secure Contexte
+            if ($.config.hostList[host]["sslCertificate"]) {
+                $.secureContext[host] = tls.createSecureContext({
+                    key: fs.readFileSync($.config.hostList[host]["sslCertificate"].key),
+                    cert: fs.readFileSync($.config.hostList[host]["sslCertificate"].cert),
+                    ca: fs.readFileSync($.config.hostList[host]["sslCertificate"].ca)
+                });
+            }
+            // Load cache
             if (!fs.existsSync($.config.cachePath + host + "/")) {
                 fs.mkdir($.config.cachePath + host + "/");
             }
@@ -40,6 +50,7 @@ $ = {
             res.statusCode = 200;
             
             if (!$.config.hostList[pHost]) {
+                res.statusCode = 404;
                 res.end("NOT AUTHORIZED PROXY ACCESS");
                 return false;
             }
@@ -56,7 +67,7 @@ $ = {
                         res.end($.cache[pHost][pCacheKey].content);
                         Log("CACHE TEXT: " + pURL);
                     } else {
-                        try {
+                        try { // TODO: error don't fire!
                             var readStream = fs.createReadStream($.cache[pHost][pCacheKey].filePath);
                             readStream.pipe(res);
                         } catch (err) {
@@ -69,22 +80,22 @@ $ = {
                 } else {
                     var pOptions = {
                         method: req.method,
-                        hostname: $.config.hostList[pHost].ip,
-                        port: 80,
+                        hostname: $.config.hostList[pHost].origin.ip,
                         path: pURL,
                         headers: req.headers
                     };
                     // Override request header value
                     delete pOptions.headers["accept-encoding"]; // Disable GZip
-                    pOptions.headers["host"] = pHost;
-
-                    var pCacheFilePath = $.cacheTools.getPath(pHost, pURL);
+                    pOptions.headers["host"] = $.config.hostList[pHost].origin.host;
 
                     // Send Request to origin
                     var extReq = http.request(pOptions, function (extRes) {
-                        res.writeHeader(extRes.statusCode, extRes.headers);
+                        var saveToCache = $.config.hostList[pHost].cacheEnabled;
+                        var isRewritedText = false;
+                        if (!extRes.headers["content-type"]) saveToCache = false;
+                        if (saveToCache) {
+                            var pCacheFilePath = $.cacheTools.getPath(pHost, pURL);
 
-                        if ($.config.hostList[pHost].cacheEnabled) {
                             var pContentType = "";
                             if (extRes.headers["content-type"]) pContentType = extRes.headers["content-type"];
 
@@ -94,26 +105,52 @@ $ = {
                                 content: "",
                                 filePath: pCacheFilePath
                             };
-                        
+
                             if (pContentType.indexOf("text") !== -1 || pContentType.indexOf("javascript") !== -1 || pContentType.indexOf("json") !== -1) {
+                                // TEXT CONTENT
                                 var resBody = "";
                                 extRes.on('data', function (chunk) {
                                     resBody += chunk;
                                 });
                                 extRes.on('end', function (chunk) {
+                                    /* Replace text in the response */
+                                    if ($.config.hostList[pHost]["textReplace"]) {
+                                        isRewritedText = true;
+                                        for (var textSource in $.config.hostList[pHost]["textReplace"]) {
+                                            resBody = resBody.replaceAll(textSource, $.config.hostList[pHost]["textReplace"][textSource]);
+                                        }
+                                    }
                                     $.cache[pHost][pCacheKey].content = resBody;
+                                    var pContentLength = Buffer.byteLength(resBody, "utf-8");
+                                    $.cache[pHost][pCacheKey].headers["content-length"] = pContentLength;
+                                    extRes.headers["content-length"] = pContentLength;
+                                    res.writeHeader(extRes.statusCode, extRes.headers);
+                                    res.end(resBody);
                                 });
 
                             } else {
+                                // FILE CONTENT
                                 $.cacheTools.createPath(pCacheFilePath);
                                 extRes.pipe(fs.createWriteStream(pCacheFilePath));
+                                res.writeHeader(extRes.statusCode, extRes.headers);
+                                extRes.pipe(res);
                             }
                             $.cacheTools.eventChanged(pHost);
+
+                        } else {
+                            // NO CACHE, JUST RELAY
+                            res.writeHeader(extRes.statusCode, extRes.headers);
+                            extRes.pipe(res);
                         }
-                        
-                        extRes.pipe(res);
+
                         Log("RELAY: " + pURL);
                         
+                    });
+                    extReq.on("error", function (err) {
+                        Log(err);
+                        res.end("SERVER DOWN");
+                    }).setTimeout(5000, function () {
+                        res.end("SERVER TIMEOUT");
                     });
                     if (req.method.toUpperCase() === "POST") extReq.write(body);
                     extReq.end();
@@ -177,8 +214,7 @@ $ = {
             } 
         }
     },
-    getConfig: function () { return $.config; },
-    getCache: function () { return $.cache; }
+    moduleEnd: true
  
 };
 module.exports = $;

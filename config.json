@@ -3,11 +3,46 @@
   "hostList": {
     "www.qub.ca": {
       "cacheEnabled": true,
-      "ip": "52.2.41.1"
+      "origin": {
+        "ip": "52.2.41.1",
+        "host": "www.qub.ca"
+      }
+    },
+    "www.fakequb.ca": {
+      "cacheEnabled": true,
+      "origin": {
+        "ip": "52.2.41.1",
+        "host": "www.qub.ca"
+      },
+      "textReplace": {
+        "Performance":  "TEST"
+      }
+    },
+    "www.telipso.ca": {
+      "cacheEnabled": true,
+      "origin": {
+        "ip": "69.51.204.242",
+        "host": "www.telipso.ca"
+      }
     },
     "www.cinqpapilles.com": {
       "cacheEnabled": true,
-      "ip": "34.196.82.190"
+      "origin": {
+        "ip": "34.196.82.190",
+        "host": "www.cinqpapilles.com"
+      }
+    },
+    "www.vaillancourt.ca": {
+      "cacheEnabled": true,
+      "origin": {
+        "ip": "34.196.82.190",
+        "host": "www.vaillancourt.ca"
+      },
+      "sslCertificate": {
+        "key": "./ssl/vaillancourt.ca.key",
+        "cert": "./ssl/vaillancourt.ca.crt",
+        "ca": "./ssl/comodo.crt"
+      }
     }
   }
 }

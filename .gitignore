@@ -4,6 +4,7 @@ obj
 bin
 node-proxy.njsproj
 node-proxy.sln
+ssl
 cache
 config.json
 package-lock.json
